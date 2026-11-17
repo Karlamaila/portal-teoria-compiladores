@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Código intermedio y código final | Portal de Teoría de Compiladores</title>
+  <meta name="description" content="Qué es una representación intermedia, qué formas puede tomar y cómo se llega al código máquina.">
+  <meta name="color-scheme" content="light dark">
+  <!-- Una sola fuente de Google Fonts (2 familias). Si no carga, se usan fuentes del sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    /* Tema guardado y marca de JS activo, antes de pintar para evitar parpadeos */
+    (function () {
+      var d = document.documentElement;
+      d.classList.add("js");
+      try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") d.setAttribute("data-theme", t); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="hero hero--page">
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="index.html" aria-label="Portal de Teoría de Compiladores, ir al inicio"><svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><circle cx="14" cy="14" r="11" fill="none" stroke="#fff" stroke-width="2"/><path d="M9 14l3.5-3.5M9 14l3.5 3.5M19 14l-3.5-3.5M19 14l-3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M18 6 10 22" stroke="#ff7db9" stroke-width="2.2" stroke-linecap="round"/></svg><span>Compila<span class="brand__dot">·</span>Teoría</span></a>
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <nav class="nav" id="site-nav" aria-label="Principal">
+          <ul class="nav__list">
+          <li><a class="nav__link" href="compiladores.html">Compiladores</a></li>
+          <li><a class="nav__link" href="estructura.html">Estructura</a></li>
+          <li><a class="nav__link" href="fases.html">Fases</a></li>
+          <li><a class="nav__link" href="codigo-intermedio.html" aria-current="page">Código intermedio</a></li>
+          <li><a class="nav__link" href="compiladores-actuales.html">Compiladores actuales</a></li>
+          <li><a class="nav__link" href="extras.html">Extras</a></li>
+          <li><a class="nav__link" href="referencias.html">Referencias</a></li>
+          </ul>
+          <div class="nav__tools">
+            <button class="icon-btn theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-moon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
+            <span class="icon-btn icon-btn--lang" aria-label="Idioma: español (decorativo)" title="Idioma: español"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg> ES</span>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Migas de pan"><ol><li><a href="index.html">Inicio</a></li><li aria-current="page">Código intermedio y código final</li></ol></nav>
+      <h1 class="hero__title">Código intermedio y código final</h1>
+      <p class="hero__summary">Qué es una representación intermedia, qué formas puede tomar y cómo se llega al código máquina.</p>
+    </div>
+  </div>
+
+  <main id="contenido" class="page-body" tabindex="-1">
+    <div class="container page-layout">
+      <div class="page-main">
+        <section class="card card--intro">
+          <p class="lead">Entre el programa fuente y el código máquina hay una representación intermedia (IR). Existe para separar lo que depende del lenguaje de lo que depende de la máquina, y para dar un lugar cómodo donde optimizar.</p>
+          <div class="key-ideas">
+            <h2 class="key-ideas__title">Ideas clave</h2>
+            <ul>
+          <li>Con una IR común se escriben N front-ends y M back-ends en lugar de N×M compiladores completos.</li>
+          <li>Hay varias formas de IR: tres direcciones, postfija, AST/DAG, SSA, bytecode y LLVM IR.</li>
+          <li>El código final exige elegir instrucciones, asignar registros y, luego, enlazar y cargar.</li>
+            </ul>
+          </div>
+        </section>
+        <section class="card reveal" aria-labelledby="que-es-ir">
+          <h2 id="que-es-ir">Qué es la representación intermedia y por qué existe</h2>
+          <div class="prose">
+            <p>La <strong>representación intermedia (IR)</strong> es una forma del programa que no es ni el lenguaje fuente ni el código máquina. Es un punto de encuentro: el front-end la produce y el back-end la consume.</p>
+            <p>Tiene dos ventajas principales. La primera es la <strong>portabilidad</strong>: para llevar un lenguaje a una nueva arquitectura solo hay que escribir un back-end nuevo. La segunda es la <strong>reutilización</strong>: las optimizaciones se escriben una vez sobre la IR y sirven para todos los lenguajes y máquinas.</p>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <caption>Ejemplo con 3 lenguajes fuente y 4 arquitecturas destino.</caption>
+              <thead><tr><th scope="col">Estrategia</th><th scope="col">Cuenta</th><th scope="col">Piezas por construir</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Sin IR</th><td>N × M</td><td>3 × 4 = 12 compiladores completos</td></tr>
+                <tr><th scope="row">Con IR común</th><td>N + M</td><td>3 front-ends + 4 back-ends = 7 piezas</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="tipos">
+          <h2 id="tipos">Tipos de representación intermedia</h2>
+          <div class="table-wrap">
+            <table class="table">
+              <caption>Formas habituales de IR.</caption>
+              <thead><tr><th scope="col">Tipo</th><th scope="col">Idea</th><th scope="col">Dónde aparece</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Código de tres direcciones</th><td>Cada instrucción tiene a lo sumo un operador y tres direcciones: <code>x = y op z</code>. Se guarda como <em>cuádruplas</em> (op, arg1, arg2, resultado) o <em>tripletas</em> (el resultado se identifica por la posición).</td><td>Libros de texto y muchos compiladores</td></tr>
+                <tr><th scope="row">Notación postfija</th><td>El operador va después de los operandos: <code>a b +</code>. Se evalúa con una pila y no necesita paréntesis.</td><td>Lenguajes de pila, bytecode</td></tr>
+                <tr><th scope="row">AST / DAG</th><td>Árbol de la estructura del programa. El DAG (grafo acíclico dirigido) comparte las subexpresiones repetidas.</td><td>Front-ends, optimización de expresiones</td></tr>
+                <tr><th scope="row">SSA</th><td>Asignación estática única: cada variable se asigna una sola vez, y en las uniones del flujo se usa una función φ (phi) para elegir el valor.</td><td>LLVM, GCC y otros compiladores optimizadores</td></tr>
+                <tr><th scope="row">Bytecode</th><td>Instrucciones compactas para una máquina virtual, normalmente basadas en pila.</td><td>JVM (Java), CIL de .NET, Python</td></tr>
+                <tr><th scope="row">LLVM IR</th><td>Representación de bajo nivel, con tipos y en forma SSA, independiente de la máquina.</td><td>Clang, rustc, Swift</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Introducción a SSA</h3>
+          <p class="prose">En SSA cada asignación crea una variable nueva (<code>x1</code>, <code>x2</code>…). Cuando dos caminos del programa se juntan, φ elige según de dónde se venga. Esto hace evidente de dónde sale cada valor y simplifica muchas optimizaciones.</p>
+          <div class="grid grid--2">
+            <div class="code"><div class="code__bar"><span>Programa original</span><button class="code__copy" type="button">Copiar</button></div><pre><code>x = 1
+si (c) entonces
+    x = 2
+fin
+y = x + 1</code></pre></div>
+            <div class="code"><div class="code__bar"><span>En forma SSA</span><button class="code__copy" type="button">Copiar</button></div><pre><code>x1 = 1
+si (c) entonces
+    x2 = 2
+fin
+x3 = φ(x1, x2)
+y1 = x3 + 1</code></pre></div>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="ejemplo-cuadruplas">
+          <h2 id="ejemplo-cuadruplas">Ejemplo paso a paso: de una expresión a tres direcciones</h2>
+          <p class="prose">Tomemos la sentencia <code>x = (a + b) * (c - d)</code>.</p>
+          <ol class="prose">
+            <li>Se recorre el AST de abajo hacia arriba: primero las sumas y restas de los paréntesis.</li>
+            <li>Cada resultado parcial se guarda en un temporal nuevo (<code>t1</code>, <code>t2</code>…).</li>
+            <li>El último temporal se asigna a la variable destino.</li>
+          </ol>
+          <div class="code"><div class="code__bar"><span>Código de tres direcciones</span><button class="code__copy" type="button">Copiar</button></div><pre><code>t1 = a + b
+t2 = c - d
+t3 = t1 * t2
+x  = t3</code></pre></div>
+          <div class="table-wrap">
+            <table class="table">
+              <caption>Las mismas instrucciones como cuádruplas.</caption>
+              <thead><tr><th scope="col">#</th><th scope="col">op</th><th scope="col">arg1</th><th scope="col">arg2</th><th scope="col">resultado</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><code>+</code></td><td><code>a</code></td><td><code>b</code></td><td><code>t1</code></td></tr>
+                <tr><td>2</td><td><code>-</code></td><td><code>c</code></td><td><code>d</code></td><td><code>t2</code></td></tr>
+                <tr><td>3</td><td><code>*</code></td><td><code>t1</code></td><td><code>t2</code></td><td><code>t3</code></td></tr>
+                <tr><td>4</td><td><code>=</code></td><td><code>t3</code></td><td>—</td><td><code>x</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="prose">En <strong>tripletas</strong> se omite el campo resultado y se usa el número de la instrucción: la 3 sería <code>(3) * (1) (2)</code>. En <strong>notación postfija</strong> la expresión queda <code>a b + c d - *</code>.</p>
+        </section>
+
+        <section class="card reveal" aria-labelledby="optimizacion">
+          <h2 id="optimizacion">Optimización: antes y después</h2>
+          <p class="prose">El middle-end aplica transformaciones que no cambian el resultado del programa. Estas son cuatro de las más conocidas.</p>
+          <div class="grid grid--2">
+            <article class="tile">
+              <h3>Plegado de constantes</h3>
+              <p>Se calcula en compilación lo que ya se conoce.</p>
+              <div class="code"><pre><code>x = 3 * 4 + y     →     x = 12 + y</code></pre></div>
+            </article>
+            <article class="tile">
+              <h3>Eliminación de código muerto</h3>
+              <p>Se quita lo que nunca influye en el resultado.</p>
+              <div class="code"><pre><code>x = a + b         →     x = c * 2
+x = c * 2               imprimir(x)
+imprimir(x)</code></pre></div>
+            </article>
+            <article class="tile">
+              <h3>Propagación de copias</h3>
+              <p>Se usa el valor original en lugar de una copia.</p>
+              <div class="code"><pre><code>t = x             →     y = x + 1
+y = t + 1</code></pre></div>
+            </article>
+            <article class="tile">
+              <h3>Desenrollado de bucles</h3>
+              <p>Se repite el cuerpo para evitar el costo de controlar el bucle.</p>
+              <div class="code"><pre><code>para i en 0..3:   →     suma += v[0]
+    suma += v[i]        suma += v[1]
+                        suma += v[2]
+                        suma += v[3]</code></pre></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="codigo-final">
+          <h2 id="codigo-final">Código final</h2>
+          <p class="prose">El back-end convierte la IR en instrucciones de una máquina concreta. Sus tareas principales son:</p>
+          <ul class="prose">
+            <li><strong>Selección de instrucciones:</strong> elegir qué instrucciones de la arquitectura implementan cada operación de la IR.</li>
+            <li><strong>Asignación de registros:</strong> decidir qué valores viven en los pocos registros físicos y cuáles se guardan temporalmente en memoria.</li>
+            <li><strong>Ordenamiento de instrucciones:</strong> reordenarlas para aprovechar mejor el procesador sin cambiar el resultado.</li>
+            <li><strong>Manejo de memoria:</strong> la <em>pila</em> guarda variables locales y datos de las llamadas a funciones; el <em>heap</em> guarda memoria dinámica que dura más que una llamada.</li>
+            <li><strong>Ensamblado:</strong> pasar de ensamblador a código máquina binario, en un archivo objeto.</li>
+          </ul>
+          <h3>Enlazado y carga</h3>
+          <p class="prose">El <strong>enlazador (linker)</strong> une los archivos objeto y las bibliotecas en un solo ejecutable, y resuelve las referencias entre ellos (por ejemplo, la llamada a una función definida en otro archivo). El <strong>cargador (loader)</strong>, parte del sistema operativo, coloca ese ejecutable en memoria y lo prepara para correr.</p>
+          <div class="table-wrap">
+            <table class="table">
+              <caption>Comparación entre código intermedio y código final.</caption>
+              <thead><tr><th scope="col">Aspecto</th><th scope="col">Código intermedio</th><th scope="col">Código final</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Depende de la máquina</th><td>No, o muy poco</td><td>Sí, de una arquitectura concreta</td></tr>
+                <tr><th scope="row">Registros</th><td>Temporales ilimitados</td><td>Registros físicos en número limitado</td></tr>
+                <tr><th scope="row">Instrucciones</th><td>Operaciones genéricas</td><td>Instrucciones reales del procesador</td></tr>
+                <tr><th scope="row">Uso principal</th><td>Analizar y optimizar</td><td>Ejecutarse</td></tr>
+                <tr><th scope="row">Legibilidad</th><td>Alta, parecida a un lenguaje simple</td><td>Baja, se acerca al hardware</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="ejemplo-c-ir-asm">
+          <h2 id="ejemplo-c-ir-asm">Ejemplo ilustrativo: C → IR → ensamblador x86-64</h2>
+          <div class="callout">
+            <strong class="callout__title">Ejemplo simplificado</strong>
+            <p>La salida exacta cambia según el compilador, su versión y el nivel de optimización. Estos fragmentos están ajustados para que sean fáciles de leer.</p>
+          </div>
+          <div class="grid grid--3">
+            <div class="code"><div class="code__bar"><span>C</span><button class="code__copy" type="button">Copiar</button></div><pre><code>int suma(int a, int b) {
+    return a + b;
+}</code></pre></div>
+            <div class="code"><div class="code__bar"><span>LLVM IR</span><button class="code__copy" type="button">Copiar</button></div><pre><code>define i32 @suma(i32 %a, i32 %b) {
+entry:
+  %add = add nsw i32 %a, %b
+  ret i32 %add
+}</code></pre></div>
+            <div class="code"><div class="code__bar"><span>x86-64 (Intel)</span><button class="code__copy" type="button">Copiar</button></div><pre><code>suma:
+    lea  eax, [rdi + rsi]
+    ret</code></pre></div>
+          </div>
+          <p class="prose">En la convención de llamadas de Linux x86-64, los dos primeros argumentos llegan en los registros <code>rdi</code> y <code>rsi</code> y el resultado se devuelve en <code>eax</code>.</p>
+        </section>
+
+    <nav class="pager" aria-label="Navegación entre páginas">
+      <a class="pager__link" href="fases.html" rel="prev"><span class="pager__label">Anterior</span><span class="pager__title">Fases del proceso de compilación</span></a>
+      <a class="pager__link pager__link--next" href="compiladores-actuales.html" rel="next"><span class="pager__label">Siguiente</span><span class="pager__title">Principales compiladores actuales</span></a>
+    </nav>
+      </div>
+    <aside class="toc" aria-label="Índice de la página">
+      <p class="toc__title">En esta página</p>
+      <ol>
+        <li><a href="#que-es-ir">Qué es la representación intermedia y por qué existe</a></li>
+        <li><a href="#tipos">Tipos de representación intermedia</a></li>
+        <li><a href="#ejemplo-cuadruplas">Ejemplo paso a paso: de una expresión a tres direcciones</a></li>
+        <li><a href="#optimizacion">Optimización: antes y después</a></li>
+        <li><a href="#codigo-final">Código final</a></li>
+        <li><a href="#ejemplo-c-ir-asm">Ejemplo ilustrativo: C → IR → ensamblador x86-64</a></li>
+      </ol>
+    </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>Teoría de Autómatas y Compiladores. Actividad grupal, 2026.</p>
+      <p><a href="referencias.html">Referencias</a></p>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

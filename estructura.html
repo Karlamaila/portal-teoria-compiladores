@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estructura de un compilador | Portal de Teoría de Compiladores</title>
+  <meta name="description" content="Front-end, middle-end y back-end, los componentes que atraviesan todo el proceso y las formas de organizar un compilador.">
+  <meta name="color-scheme" content="light dark">
+  <!-- Una sola fuente de Google Fonts (2 familias). Si no carga, se usan fuentes del sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    /* Tema guardado y marca de JS activo, antes de pintar para evitar parpadeos */
+    (function () {
+      var d = document.documentElement;
+      d.classList.add("js");
+      try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") d.setAttribute("data-theme", t); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="hero hero--page">
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="index.html" aria-label="Portal de Teoría de Compiladores, ir al inicio"><svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><circle cx="14" cy="14" r="11" fill="none" stroke="#fff" stroke-width="2"/><path d="M9 14l3.5-3.5M9 14l3.5 3.5M19 14l-3.5-3.5M19 14l-3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M18 6 10 22" stroke="#ff7db9" stroke-width="2.2" stroke-linecap="round"/></svg><span>Compila<span class="brand__dot">·</span>Teoría</span></a>
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <nav class="nav" id="site-nav" aria-label="Principal">
+          <ul class="nav__list">
+          <li><a class="nav__link" href="compiladores.html">Compiladores</a></li>
+          <li><a class="nav__link" href="estructura.html" aria-current="page">Estructura</a></li>
+          <li><a class="nav__link" href="fases.html">Fases</a></li>
+          <li><a class="nav__link" href="codigo-intermedio.html">Código intermedio</a></li>
+          <li><a class="nav__link" href="compiladores-actuales.html">Compiladores actuales</a></li>
+          <li><a class="nav__link" href="extras.html">Extras</a></li>
+          <li><a class="nav__link" href="referencias.html">Referencias</a></li>
+          </ul>
+          <div class="nav__tools">
+            <button class="icon-btn theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-moon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
+            <span class="icon-btn icon-btn--lang" aria-label="Idioma: español (decorativo)" title="Idioma: español"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg> ES</span>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Migas de pan"><ol><li><a href="index.html">Inicio</a></li><li aria-current="page">Estructura de un compilador</li></ol></nav>
+      <h1 class="hero__title">Estructura de un compilador</h1>
+      <p class="hero__summary">Front-end, middle-end y back-end, los componentes que atraviesan todo el proceso y las formas de organizar un compilador.</p>
+    </div>
+  </div>
+
+  <main id="contenido" class="page-body" tabindex="-1">
+    <div class="container page-layout">
+      <div class="page-main">
+        <section class="card card--intro">
+          <p class="lead">Un compilador no es un bloque único: se organiza en partes que se pueden reemplazar o reutilizar. Esa modularidad es la que permite que un mismo front-end genere código para varias arquitecturas.</p>
+          <div class="key-ideas">
+            <h2 class="key-ideas__title">Ideas clave</h2>
+            <ul>
+          <li>El front-end analiza, el middle-end optimiza y el back-end genera código para una máquina concreta.</li>
+          <li>La tabla de símbolos, el manejador de errores y la IR son componentes compartidos por varias fases.</li>
+          <li>Bootstrapping y compilación cruzada se entienden fácilmente con diagramas T.</li>
+            </ul>
+          </div>
+        </section>
+        <section class="card reveal" aria-labelledby="tres-partes">
+          <h2 id="tres-partes">Front-end, middle-end y back-end</h2>
+          <p class="prose">Casi todos los compiladores modernos se dividen en tres bloques conectados por una representación intermedia (IR). Lo que cambia con el lenguaje queda en el front-end; lo que cambia con la máquina queda en el back-end.</p>
+          <figure class="figure">
+            <svg viewBox="0 0 900 320" role="img" aria-labelledby="est-t est-d">
+              <title id="est-t">Arquitectura de un compilador</title>
+              <desc id="est-d">El código fuente entra al front-end (léxico, sintáctico, semántico), pasa por una IR al middle-end (optimizador), de nuevo por IR al back-end (selección de instrucciones, asignación de registros, emisión) y sale como código objeto. La tabla de símbolos y el manejador de errores se conectan con todos los bloques.</desc>
+              <defs><marker id="fl2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="svg-arrow"/></marker></defs>
+              <g class="svg-text" text-anchor="middle">
+                <rect class="svg-box" x="10" y="110" width="84" height="64" rx="8"/>
+                <text x="52" y="138">Código</text><text x="52" y="156">fuente</text>
+
+                <rect class="svg-box svg-box--indigo" x="130" y="20" width="200" height="220" rx="12"/>
+                <text class="svg-text--bold" x="230" y="46">Front-end (análisis)</text>
+                <rect class="svg-box" x="148" y="64" width="164" height="40" rx="6"/><text x="230" y="89">Análisis léxico</text>
+                <rect class="svg-box" x="148" y="120" width="164" height="40" rx="6"/><text x="230" y="145">Análisis sintáctico</text>
+                <rect class="svg-box" x="148" y="176" width="164" height="40" rx="6"/><text x="230" y="201">Análisis semántico</text>
+
+                <rect class="svg-box svg-box--pink" x="370" y="20" width="140" height="220" rx="12"/>
+                <text class="svg-text--bold" x="440" y="46">Middle-end</text>
+                <rect class="svg-box" x="386" y="100" width="108" height="64" rx="6"/><text x="440" y="128">Optimizador</text><text class="svg-text--small" x="440" y="148">independiente</text>
+
+                <rect class="svg-box svg-box--ok" x="550" y="20" width="200" height="220" rx="12"/>
+                <text class="svg-text--bold" x="650" y="46">Back-end (síntesis)</text>
+                <rect class="svg-box" x="568" y="64" width="164" height="40" rx="6"/><text x="650" y="89">Selección de instr.</text>
+                <rect class="svg-box" x="568" y="120" width="164" height="40" rx="6"/><text x="650" y="145">Asignación de registros</text>
+                <rect class="svg-box" x="568" y="176" width="164" height="40" rx="6"/><text x="650" y="201">Emisión de código</text>
+
+                <rect class="svg-box" x="790" y="110" width="100" height="64" rx="8"/>
+                <text x="840" y="138">Código</text><text x="840" y="156">objeto</text>
+              </g>
+              <g class="svg-line">
+                <path d="M94 142h34" marker-end="url(#fl2)"/>
+                <path d="M330 130h38" marker-end="url(#fl2)"/>
+                <path d="M510 130h38" marker-end="url(#fl2)"/>
+                <path d="M750 142h38" marker-end="url(#fl2)"/>
+              </g>
+              <g class="svg-text svg-text--small" text-anchor="middle">
+                <text x="349" y="122">IR</text><text x="529" y="122">IR</text>
+              </g>
+              <rect class="svg-box" x="130" y="262" width="620" height="44" rx="8" stroke-dasharray="6 4"/>
+              <text class="svg-text svg-text--bold" x="440" y="289" text-anchor="middle">Tabla de símbolos y manejador de errores (usados por todos los bloques)</text>
+            </svg>
+            <figcaption>Estructura general. Con una IR común, un nuevo lenguaje solo necesita un front-end y una nueva arquitectura solo necesita un back-end.</figcaption>
+          </figure>
+          <div class="grid grid--3">
+            <article class="tile"><h3>Front-end</h3><p>Entiende el lenguaje fuente: valida léxica, sintaxis y significado y produce la IR.</p></article>
+            <article class="tile"><h3>Middle-end</h3><p>Mejora la IR con optimizaciones que no dependen ni del lenguaje ni de la máquina.</p></article>
+            <article class="tile"><h3>Back-end</h3><p>Convierte la IR en instrucciones de una arquitectura concreta (x86-64, ARM, etc.).</p></article>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="componentes">
+          <h2 id="componentes">Componentes transversales</h2>
+          <p class="prose">Tres elementos no pertenecen a una sola fase: se consultan y se actualizan a lo largo de todo el proceso.</p>
+          <div class="grid grid--3">
+            <article class="tile">
+              <h3>Tabla de símbolos</h3>
+              <dl>
+                <dt>Responsabilidad</dt><dd>Guardar, por cada identificador, su nombre, tipo, ámbito y posición en memoria.</dd>
+                <dt>Entradas</dt><dd>Declaraciones detectadas por el parser y el análisis semántico.</dd>
+                <dt>Salidas</dt><dd>Consultas de tipo y ámbito para verificar usos y generar código.</dd>
+              </dl>
+            </article>
+            <article class="tile">
+              <h3>Manejador de errores</h3>
+              <dl>
+                <dt>Responsabilidad</dt><dd>Informar el error con su posición y un mensaje claro, y permitir seguir analizando.</dd>
+                <dt>Entradas</dt><dd>Fallos detectados por cualquier fase.</dd>
+                <dt>Salidas</dt><dd>Mensajes al programador y estrategias de recuperación.</dd>
+              </dl>
+            </article>
+            <article class="tile">
+              <h3>Representación intermedia (IR)</h3>
+              <dl>
+                <dt>Responsabilidad</dt><dd>Servir de lenguaje común entre front-end, middle-end y back-end.</dd>
+                <dt>Entradas</dt><dd>El AST ya validado por el front-end.</dd>
+                <dt>Salidas</dt><dd>Código en una forma lista para optimizar y traducir. Ver <a href="codigo-intermedio.html">Código intermedio</a>.</dd>
+              </dl>
+            </article>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="pasadas">
+          <h2 id="pasadas">Una pasada o varias</h2>
+          <div class="prose">
+            <p>Una <strong>pasada</strong> es un recorrido completo del programa o de su representación. Un compilador de <strong>una sola pasada</strong> genera código mientras lee el fuente; es rápido y usa poca memoria, pero limita al lenguaje a exigir que todo se declare antes de usarse. Un compilador de <strong>múltiples pasadas</strong> construye representaciones intermedias y las recorre varias veces. Es más flexible y permite optimizar mejor, a costa de más memoria y tiempo.</p>
+            <p>Hoy casi todos los compiladores de uso general son de varias pasadas, aunque algunos lenguajes pequeños se siguen diseñando para una sola.</p>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="cruzado-bootstrap">
+          <h2 id="cruzado-bootstrap">Compiladores cruzados, bootstrapping y diagramas T</h2>
+          <div class="prose">
+            <p>Un <strong>compilador cruzado</strong> corre en una máquina pero genera código para otra. Es lo normal al programar microcontroladores o aplicaciones móviles desde un computador de escritorio.</p>
+            <p>El <strong>bootstrapping</strong> (autocompilación) consiste en escribir el compilador del lenguaje X en el propio lenguaje X. Para la primera versión se necesita otro compilador ya existente; después, el compilador se compila a sí mismo. Rust, Go y el compilador de C# (Roslyn) son ejemplos de compiladores escritos en el lenguaje que compilan.</p>
+            <p>El <strong>diagrama T</strong> es una forma gráfica de razonar sobre esto. Cada «T» representa un compilador: arriba a la izquierda el lenguaje que lee, arriba a la derecha el que produce, y abajo el lenguaje en que está escrito.</p>
+          </div>
+          <figure class="figure">
+            <svg viewBox="0 0 540 124" role="img" aria-labelledby="t-t t-d">
+              <title id="t-t">Composición de diagramas T</title>
+              <desc id="t-d">Un compilador de X a M escrito en C, más un compilador de C a M escrito en M, da un compilador de X a M escrito en M.</desc>
+              <g class="svg-text svg-text--bold" text-anchor="middle">
+                <rect class="svg-box svg-box--indigo" x="10" y="30" width="140" height="40"/><path class="svg-line" d="M80 30v40"/>
+                <text x="45" y="56">X</text><text x="115" y="56">M</text>
+                <rect class="svg-box svg-box--indigo" x="50" y="70" width="60" height="40"/><text x="80" y="96">C</text>
+
+                <text class="svg-text--bold" x="172" y="76" style="font-size:22px">+</text>
+
+                <rect class="svg-box svg-box--ok" x="190" y="30" width="140" height="40"/><path class="svg-line" d="M260 30v40"/>
+                <text x="225" y="56">C</text><text x="295" y="56">M</text>
+                <rect class="svg-box svg-box--ok" x="230" y="70" width="60" height="40"/><text x="260" y="96">M</text>
+
+                <text class="svg-text--bold" x="352" y="76" style="font-size:22px">=</text>
+
+                <rect class="svg-box svg-box--pink" x="370" y="30" width="140" height="40"/><path class="svg-line" d="M440 30v40"/>
+                <text x="405" y="56">X</text><text x="475" y="56">M</text>
+                <rect class="svg-box svg-box--pink" x="410" y="70" width="60" height="40"/><text x="440" y="96">M</text>
+              </g>
+            </svg>
+            <figcaption>Composición de diagramas T. M es el lenguaje de la máquina.</figcaption>
+          </figure>
+        </section>
+
+    <nav class="pager" aria-label="Navegación entre páginas">
+      <a class="pager__link" href="compiladores.html" rel="prev"><span class="pager__label">Anterior</span><span class="pager__title">Compiladores</span></a>
+      <a class="pager__link pager__link--next" href="fases.html" rel="next"><span class="pager__label">Siguiente</span><span class="pager__title">Fases del proceso de compilación</span></a>
+    </nav>
+      </div>
+    <aside class="toc" aria-label="Índice de la página">
+      <p class="toc__title">En esta página</p>
+      <ol>
+        <li><a href="#tres-partes">Front-end, middle-end y back-end</a></li>
+        <li><a href="#componentes">Componentes transversales</a></li>
+        <li><a href="#pasadas">Una pasada o varias</a></li>
+        <li><a href="#cruzado-bootstrap">Compiladores cruzados, bootstrapping y diagramas T</a></li>
+      </ol>
+    </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>Teoría de Autómatas y Compiladores. Actividad grupal, 2026.</p>
+      <p><a href="referencias.html">Referencias</a></p>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

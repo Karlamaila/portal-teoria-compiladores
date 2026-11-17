@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fases del proceso de compilación | Portal de Teoría de Compiladores</title>
+  <meta name="description" content="Las seis fases, recorridas con un único ejemplo: resultado = precio * 2 + impuesto;">
+  <meta name="color-scheme" content="light dark">
+  <!-- Una sola fuente de Google Fonts (2 familias). Si no carga, se usan fuentes del sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    /* Tema guardado y marca de JS activo, antes de pintar para evitar parpadeos */
+    (function () {
+      var d = document.documentElement;
+      d.classList.add("js");
+      try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") d.setAttribute("data-theme", t); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="hero hero--page">
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="index.html" aria-label="Portal de Teoría de Compiladores, ir al inicio"><svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><circle cx="14" cy="14" r="11" fill="none" stroke="#fff" stroke-width="2"/><path d="M9 14l3.5-3.5M9 14l3.5 3.5M19 14l-3.5-3.5M19 14l-3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M18 6 10 22" stroke="#ff7db9" stroke-width="2.2" stroke-linecap="round"/></svg><span>Compila<span class="brand__dot">·</span>Teoría</span></a>
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <nav class="nav" id="site-nav" aria-label="Principal">
+          <ul class="nav__list">
+          <li><a class="nav__link" href="compiladores.html">Compiladores</a></li>
+          <li><a class="nav__link" href="estructura.html">Estructura</a></li>
+          <li><a class="nav__link" href="fases.html" aria-current="page">Fases</a></li>
+          <li><a class="nav__link" href="codigo-intermedio.html">Código intermedio</a></li>
+          <li><a class="nav__link" href="compiladores-actuales.html">Compiladores actuales</a></li>
+          <li><a class="nav__link" href="extras.html">Extras</a></li>
+          <li><a class="nav__link" href="referencias.html">Referencias</a></li>
+          </ul>
+          <div class="nav__tools">
+            <button class="icon-btn theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-moon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
+            <span class="icon-btn icon-btn--lang" aria-label="Idioma: español (decorativo)" title="Idioma: español"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" ><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg> ES</span>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Migas de pan"><ol><li><a href="index.html">Inicio</a></li><li aria-current="page">Fases del proceso de compilación</li></ol></nav>
+      <h1 class="hero__title">Fases del proceso de compilación</h1>
+      <p class="hero__summary">Las seis fases, recorridas con un único ejemplo: resultado = precio * 2 + impuesto;</p>
+    </div>
+  </div>
+
+  <main id="contenido" class="page-body" tabindex="-1">
+    <div class="container page-layout">
+      <div class="page-main">
+        <section class="card card--intro">
+          <p class="lead">Compilar es transformar el programa paso a paso. Cada fase recibe una representación y entrega otra más cercana a la máquina. Aquí seguimos la misma línea de código a través de las seis fases para ver qué cambia en cada una.</p>
+          <div class="key-ideas">
+            <h2 class="key-ideas__title">Ideas clave</h2>
+            <ul>
+          <li>Las tres primeras fases analizan el programa; las tres últimas lo sintetizan.</li>
+          <li>La salida de cada fase es la entrada de la siguiente: tokens, AST, AST anotado, código de tres direcciones, código optimizado, ensamblador.</li>
+          <li>La tabla de símbolos y el manejo de errores participan en todas las fases.</li>
+            </ul>
+          </div>
+        </section>
+        <section class="card reveal" aria-labelledby="ejemplo">
+          <h2 id="ejemplo">El ejemplo que seguiremos</h2>
+          <p class="prose">Usaremos una sola sentencia, escrita en un lenguaje sencillo parecido a C, en un programa donde <code>precio</code>, <code>impuesto</code> y <code>resultado</code> fueron declaradas como <code>float</code>:</p>
+          <div class="code"><div class="code__bar"><span>Programa fuente</span><button class="code__copy" type="button">Copiar</button></div><pre><code>float precio, impuesto, resultado;
+resultado = precio * 2 + impuesto;</code></pre></div>
+          <div class="table-wrap">
+            <table class="table">
+              <caption>Resumen: qué recibe y qué entrega cada fase.</caption>
+              <thead><tr><th scope="col">Fase</th><th scope="col">Entrada</th><th scope="col">Salida</th><th scope="col">Grupo</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">1. Análisis léxico</th><td>Caracteres</td><td>Tokens</td><td rowspan="3"><span class="badge">Análisis (front-end)</span></td></tr>
+                <tr><th scope="row">2. Análisis sintáctico</th><td>Tokens</td><td>AST</td></tr>
+                <tr><th scope="row">3. Análisis semántico</th><td>AST + tabla de símbolos</td><td>AST anotado con tipos</td></tr>
+                <tr><th scope="row">4. Código intermedio</th><td>AST anotado</td><td>Código de tres direcciones</td><td rowspan="3"><span class="badge badge--pink">Síntesis (middle-end y back-end)</span></td></tr>
+                <tr><th scope="row">5. Optimización</th><td>Código intermedio</td><td>Código intermedio mejorado</td></tr>
+                <tr><th scope="row">6. Código final</th><td>Código intermedio optimizado</td><td>Ensamblador / código máquina</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="recorrido" data-stepper>
+          <h2 id="recorrido">Recorrido interactivo por las seis fases</h2>
+          <p class="prose">Usa los botones, las pestañas o las flechas del teclado (izquierda y derecha, Inicio y Fin) para pasar de una fase a otra.</p>
+
+          <div class="stepper__tabs" role="tablist" aria-label="Fases de la compilación">
+            <button class="stepper__tab" role="tab" id="tab-1" aria-controls="panel-1" data-title="Análisis léxico"><span class="stepper__num">1</span>Léxico</button>
+            <button class="stepper__tab" role="tab" id="tab-2" aria-controls="panel-2" data-title="Análisis sintáctico"><span class="stepper__num">2</span>Sintáctico</button>
+            <button class="stepper__tab" role="tab" id="tab-3" aria-controls="panel-3" data-title="Análisis semántico"><span class="stepper__num">3</span>Semántico</button>
+            <button class="stepper__tab" role="tab" id="tab-4" aria-controls="panel-4" data-title="Generación de código intermedio"><span class="stepper__num">4</span>Código intermedio</button>
+            <button class="stepper__tab" role="tab" id="tab-5" aria-controls="panel-5" data-title="Optimización"><span class="stepper__num">5</span>Optimización</button>
+            <button class="stepper__tab" role="tab" id="tab-6" aria-controls="panel-6" data-title="Generación de código final"><span class="stepper__num">6</span>Código final</button>
+          </div>
+          <div class="stepper__progress" aria-hidden="true"><div class="stepper__bar"></div></div>
+          <p class="stepper__status" aria-live="polite"></p>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1" tabindex="0">
+            <h3>1. Análisis léxico</h3>
+            <p><strong>Objetivo:</strong> agrupar los caracteres en unidades con significado (tokens) y descartar espacios y comentarios. Se basa en expresiones regulares y autómatas finitos.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>Flujo de caracteres del programa fuente.</div>
+              <div><strong>Salida</strong>Secuencia de tokens.</div>
+              <div><strong>Errores típicos</strong>Carácter inválido (<code>@</code>), número mal formado (<code>2.3.4</code>), cadena sin cerrar.</div>
+            </div>
+            <div class="code"><div class="code__bar"><span>Tokens de la sentencia</span><button class="code__copy" type="button">Copiar</button></div><pre><code>&lt;ID, "resultado"&gt;  &lt;ASIGNACION, "="&gt;  &lt;ID, "precio"&gt;  &lt;OP_MUL, "*"&gt;
+&lt;NUM, "2"&gt;  &lt;OP_SUMA, "+"&gt;  &lt;ID, "impuesto"&gt;  &lt;PUNTO_Y_COMA, ";"&gt;</code></pre></div>
+          </div>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" tabindex="0" hidden>
+            <h3>2. Análisis sintáctico</h3>
+            <p><strong>Objetivo:</strong> comprobar que los tokens siguen la gramática del lenguaje y construir el árbol de sintaxis abstracta (AST). La precedencia queda reflejada en la forma del árbol.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>Secuencia de tokens.</div>
+              <div><strong>Salida</strong>AST (o árbol de derivación).</div>
+              <div><strong>Errores típicos</strong>Falta de <code>;</code>, paréntesis sin cerrar, expresión incompleta como <code>precio * ;</code>.</div>
+            </div>
+            <div class="code"><div class="code__bar"><span>AST</span><button class="code__copy" type="button">Copiar</button></div><pre><code>Asignación
+├── resultado
+└── Suma (+)
+    ├── Multiplicación (*)
+    │   ├── precio
+    │   └── 2
+    └── impuesto</code></pre></div>
+          </div>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" tabindex="0" hidden>
+            <h3>3. Análisis semántico</h3>
+            <p><strong>Objetivo:</strong> verificar el significado: que las variables estén declaradas, que los tipos sean compatibles y que se respeten los ámbitos. Consulta y completa la tabla de símbolos.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>AST y tabla de símbolos.</div>
+              <div><strong>Salida</strong>AST anotado con tipos.</div>
+              <div><strong>Errores típicos</strong>Variable no declarada, tipos incompatibles, número incorrecto de argumentos.</div>
+            </div>
+            <div class="code"><div class="code__bar"><span>AST anotado</span><button class="code__copy" type="button">Copiar</button></div><pre><code>Asignación : float
+├── resultado : float
+└── Suma : float
+    ├── Multiplicación : float
+    │   ├── precio : float
+    │   └── int_a_float(2) : float     // conversión implícita
+    └── impuesto : float</code></pre></div>
+            <p>Como <code>precio</code> es <code>float</code> y <code>2</code> es <code>int</code>, el compilador inserta una conversión para que ambos operandos tengan el mismo tipo.</p>
+          </div>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" tabindex="0" hidden>
+            <h3>4. Generación de código intermedio</h3>
+            <p><strong>Objetivo:</strong> traducir el AST a una representación lineal, independiente de la máquina. Aquí se usa código de tres direcciones, con una operación y como máximo tres operandos por instrucción.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>AST anotado.</div>
+              <div><strong>Salida</strong>Código de tres direcciones.</div>
+              <div><strong>Errores típicos</strong>Casi no hay errores del programador; los fallos suelen ser defectos del propio compilador.</div>
+            </div>
+            <div class="code"><div class="code__bar"><span>Código de tres direcciones</span><button class="code__copy" type="button">Copiar</button></div><pre><code>t1 = precio * 2.0
+t2 = t1 + impuesto
+resultado = t2</code></pre></div>
+          </div>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" tabindex="0" hidden>
+            <h3>5. Optimización</h3>
+            <p><strong>Objetivo:</strong> reducir instrucciones, tiempo o memoria sin cambiar lo que hace el programa. Aquí la <em>propagación de copias</em> elimina el temporal <code>t2</code>.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>Código intermedio.</div>
+              <div><strong>Salida</strong>Código intermedio equivalente y más eficiente.</div>
+              <div><strong>Errores típicos</strong>Avisos de código inalcanzable o variables sin usar; un optimizador defectuoso podría alterar el comportamiento.</div>
+            </div>
+            <div class="grid grid--2">
+              <div class="code"><div class="code__bar"><span>Antes</span><button class="code__copy" type="button">Copiar</button></div><pre><code>t1 = precio * 2.0
+t2 = t1 + impuesto
+resultado = t2</code></pre></div>
+              <div class="code"><div class="code__bar"><span>Después</span><button class="code__copy" type="button">Copiar</button></div><pre><code>t1 = precio * 2.0
+resultado = t1 + impuesto</code></pre></div>
+            </div>
+          </div>
+
+          <div class="stepper__panel" role="tabpanel" id="panel-6" aria-labelledby="tab-6" tabindex="0" hidden>
+            <h3>6. Generación de código final</h3>
+            <p><strong>Objetivo:</strong> elegir instrucciones de la máquina destino, asignar registros y producir ensamblador o código objeto. Después, el enlazador y el cargador lo convierten en un programa en ejecución.</p>
+            <div class="stepper__meta">
+              <div><strong>Entrada</strong>Código intermedio optimizado.</div>
+              <div><strong>Salida</strong>Ensamblador o código máquina.</div>
+              <div><strong>Errores típicos</strong>Instrucción no disponible en la arquitectura, falta de registros (se usa la memoria), símbolo sin definir al enlazar.</div>
+            </div>
+            <div class="code"><div class="code__bar"><span>x86-64 (sintaxis Intel, simplificado)</span><button class="code__copy" type="button">Copiar</button></div><pre><code>movss  xmm0, [precio]       ; cargar precio
+mulss  xmm0, [dos]          ; × 2.0 (constante en memoria)
+addss  xmm0, [impuesto]     ; + impuesto
+movss  [resultado], xmm0    ; guardar el resultado</code></pre></div>
+            <p class="stepper__note" style="font-size:.85rem;color:var(--muted)">Es una versión simplificada: un compilador real manejaría convenciones de llamada, alineación y nombres de variables locales.</p>
+          </div>
+
+          <div class="stepper__nav">
+            <button class="btn btn--ghost" type="button" data-step-prev>Anterior</button>
+            <button class="btn" type="button" data-step-next>Siguiente</button>
+          </div>
+        </section>
+
+        <section class="card reveal" aria-labelledby="transversales">
+          <h2 id="transversales">Lo que atraviesa todas las fases</h2>
+          <div class="grid grid--2">
+            <article class="tile">
+              <h3>Tabla de símbolos</h3>
+              <p>El análisis léxico registra los identificadores; el semántico completa sus tipos; el generador de código consulta sus posiciones. En el ejemplo guarda <code>precio</code>, <code>impuesto</code> y <code>resultado</code> como <code>float</code>.</p>
+            </article>
+            <article class="tile">
+              <h3>Manejo de errores</h3>
+              <p>Cada fase puede detectar errores, y el compilador debe informar la línea y la causa, y seguir analizando para mostrar más de un error por ejecución cuando sea posible.</p>
+            </article>
+          </div>
+          <div class="callout callout--info">
+            <strong class="callout__title">Pruébalo tú</strong>
+            <p>En <a href="extras.html#demo-lexico">Extras</a> puedes escribir esta misma sentencia en el analizador léxico y comparar los tokens con los de la fase 1.</p>
+          </div>
+        </section>
+
+    <nav class="pager" aria-label="Navegación entre páginas">
+      <a class="pager__link" href="estructura.html" rel="prev"><span class="pager__label">Anterior</span><span class="pager__title">Estructura de un compilador</span></a>
+      <a class="pager__link pager__link--next" href="codigo-intermedio.html" rel="next"><span class="pager__label">Siguiente</span><span class="pager__title">Código intermedio y código final</span></a>
+    </nav>
+      </div>
+    <aside class="toc" aria-label="Índice de la página">
+      <p class="toc__title">En esta página</p>
+      <ol>
+        <li><a href="#ejemplo">El ejemplo que seguiremos</a></li>
+        <li><a href="#recorrido">Recorrido interactivo por las seis fases</a></li>
+        <li><a href="#transversales">Lo que atraviesa todas las fases</a></li>
+      </ol>
+    </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>Teoría de Autómatas y Compiladores. Actividad grupal, 2026.</p>
+      <p><a href="referencias.html">Referencias</a></p>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>
