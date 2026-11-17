@@ -48,15 +48,13 @@ La fuente (Poppins y JetBrains Mono) se descarga de Google Fonts. Sin conexión 
 
 ## Marcadores por rellenar
 
-Los datos de los integrantes, la sección, el profesor y la fecha de entrega ya están completos. Quedan estos marcadores, fáciles de buscar con `Ctrl + F` o con «Buscar en archivos» del editor:
+Los integrantes, las matrículas, el equipo (Equipo 1), la universidad (UNIBE), la sección, el profesor y la fecha de entrega ya están completos. Queda un solo marcador, fácil de buscar con `Ctrl + F` o con «Buscar en archivos» del editor:
 
 | Marcador | Dónde está |
 | --- | --- |
-| `[NOMBRE DEL EQUIPO]` | `index.html` (tarjeta «Sobre el proyecto») |
-| `[NOMBRE DE LA UNIVERSIDAD]` | `index.html` (tarjeta «Sobre el proyecto») |
 | `[FECHA DE CONSULTA]` | `referencias.html` (nota inicial) |
 
-Los marcadores se resaltan en amarillo en la página para que no se olviden. Al reemplazarlos, quita también la clase `ph` del `<span>` que los envuelve si quieres que el resaltado desaparezca.
+Se resalta en amarillo en la página para que no se olvide. Al reemplazarlo, quita también la clase `ph` del `<span>` que lo envuelve si quieres que el resaltado desaparezca.
 
 Los participantes están en `index.html`, cada uno dentro de un bloque marcado con un comentario HTML (`<!-- Integrante N -->`). Para añadir otro, duplica el bloque `<li class="member">…</li>`; para quitar uno, bórralo. Las iniciales del avatar se generan solas en JavaScript a partir del nombre.
 
